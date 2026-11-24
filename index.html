@@ -1,1 +1,740 @@
 
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cache Bellek - Ders Sunumu</title>
+
+<style>
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background: #1e293b;
+    font-family: Arial, sans-serif;
+    overflow: hidden;
+}
+
+#presentation {
+    width: 100vw;
+    height: calc(100vh - 65px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.slide {
+    display: none;
+    width: min(100vw, calc((100vh - 90px) * 1.3333));
+    aspect-ratio: 4 / 3;
+    background: #f8fafc;
+    position: relative;
+    overflow: hidden;
+    padding: 5%;
+    color: #172033;
+}
+
+.slide.active {
+    display: flex;
+    flex-direction: column;
+}
+
+.slide.dark {
+    background: #1e293b;
+    color: white;
+    justify-content: center;
+}
+
+.eyebrow {
+    color: #2563eb;
+    font-size: clamp(10px, 1.5vw, 17px);
+    font-weight: bold;
+    letter-spacing: 1px;
+    margin-bottom: 12px;
+}
+
+.dark .eyebrow {
+    color: #f59e0b;
+}
+
+h1 {
+    font-size: clamp(27px, 4.2vw, 52px);
+    line-height: 1.15;
+    margin-bottom: 25px;
+}
+
+h2 {
+    font-size: clamp(22px, 3vw, 36px);
+    margin-bottom: 25px;
+}
+
+p, li {
+    font-size: clamp(13px, 1.7vw, 21px);
+    line-height: 1.6;
+}
+
+.orange-line {
+    width: 65px;
+    height: 5px;
+    background: #f59e0b;
+    border-radius: 5px;
+    margin-top: 25px;
+}
+
+.blue {
+    color: #2563eb;
+}
+
+.orange {
+    color: #d97706;
+}
+
+.cover-content {
+    display: grid;
+    grid-template-columns: 1.3fr 1fr;
+    align-items: center;
+    height: 100%;
+    gap: 25px;
+}
+
+.cover-content h1 {
+    font-size: clamp(35px, 5vw, 60px);
+}
+
+.cover-content p {
+    color: #cbd5e1;
+}
+
+.chip {
+    width: 190px;
+    height: 190px;
+    margin: auto;
+    border-radius: 30px;
+    background: #243f7c;
+    display: grid;
+    place-items: center;
+    box-shadow: 0 0 0 25px #1e3769;
+}
+
+.chip-inner {
+    width: 85px;
+    height: 85px;
+    background: #f59e0b;
+    border-radius: 20px;
+}
+
+.content-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 25px;
+    align-items: center;
+    flex: 1;
+}
+
+.cache-photo {
+    width: 100%;
+    height: 100%;
+    max-height: 340px;
+    object-fit: cover;
+    border-radius: 15px;
+}
+
+.info-list {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.info-list strong {
+    color: #172033;
+}
+
+.cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    margin: auto 0;
+}
+
+.card {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 17px;
+    padding: 22px;
+    min-height: 170px;
+    box-shadow: 0 2px 5px #00000008;
+}
+
+.card-icon {
+    font-size: 30px;
+    margin-bottom: 20px;
+}
+
+.card h3 {
+    font-size: clamp(15px, 2vw, 23px);
+    margin-bottom: 10px;
+}
+
+.card p {
+    color: #64748b;
+}
+
+.browser {
+    border: 3px solid #cbd5e1;
+    border-radius: 20px;
+    background: white;
+    overflow: hidden;
+    width: 85%;
+    height: 45%;
+    margin: 20px auto;
+}
+
+.browser-top {
+    height: 50px;
+    background: #e2e8f0;
+    display: flex;
+    align-items: center;
+    padding: 10px 20px;
+    gap: 8px;
+}
+
+.dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #ef4444;
+}
+
+.dot:nth-child(2) { background: #f59e0b; }
+.dot:nth-child(3) { background: #22c55e; }
+
+.address {
+    height: 25px;
+    background: white;
+    border-radius: 8px;
+    flex: 1;
+    margin-left: 15px;
+}
+
+.loading-bar {
+    height: 9px;
+    background: #f59e0b;
+    width: 35%;
+}
+
+.browser-body {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 20px;
+    padding: 25px;
+    height: 75%;
+}
+
+.skeleton {
+    background: #f1f5f9;
+    border: 2px dashed #cbd5e1;
+    border-radius: 15px;
+}
+
+.skeleton-right {
+    display: grid;
+    grid-template-rows: 1fr 1fr;
+    gap: 15px;
+}
+
+.stats {
+    display: flex;
+    justify-content: space-around;
+    text-align: center;
+    margin-top: 10px;
+}
+
+.stats h2 {
+    margin-bottom: 5px;
+    font-size: clamp(20px, 3vw, 35px);
+}
+
+.fast-layout {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr;
+    align-items: center;
+    gap: 25px;
+    flex: 1;
+}
+
+.fast-number {
+    font-size: clamp(40px, 7vw, 75px);
+    font-weight: bold;
+    color: #2563eb;
+}
+
+.fast-browser {
+    border: 2px solid #93c5fd;
+    border-radius: 18px;
+    background: white;
+    overflow: hidden;
+    padding-bottom: 20px;
+}
+
+.fast-browser .browser-top {
+    background: #eff6ff;
+}
+
+.fast-browser .loading-bar {
+    background: #2563eb;
+}
+
+.fast-boxes {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 12px;
+    padding: 20px;
+}
+
+.fast-box {
+    background: #dbeafe;
+    border-radius: 12px;
+    min-height: 100px;
+    padding: 15px;
+}
+
+.fast-box:last-child {
+    background: #fef3c7;
+}
+
+.table-wrap {
+    margin: auto 0;
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+th, td {
+    padding: 18px 12px;
+    text-align: left;
+    font-size: clamp(12px, 1.7vw, 19px);
+    border-bottom: 1px solid #e2e8f0;
+}
+
+th {
+    background: #1e293b;
+    color: white;
+}
+
+tr:first-of-type td {
+    background: #eff6ff;
+}
+
+.final-content {
+    text-align: center;
+    margin: auto;
+    max-width: 750px;
+}
+
+.final-content h1 {
+    font-size: clamp(32px, 5vw, 55px);
+}
+
+.source {
+    background: white;
+    color: #172033;
+    padding: 5%;
+    font-size: clamp(10px, 1.2vw, 14px);
+    overflow-wrap: anywhere;
+}
+
+.source a {
+    color: #2563eb;
+}
+
+#controls {
+    height: 65px;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    background: #0f172a;
+    color: white;
+}
+
+button {
+    padding: 10px 18px;
+    border: 1px solid #64748b;
+    background: #334155;
+    color: white;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #475569;
+}
+
+button:disabled {
+    opacity: .35;
+    cursor: not-allowed;
+}
+
+#counter {
+    min-width: 65px;
+    text-align: center;
+}
+
+#progress {
+    position: fixed;
+    bottom: 65px;
+    left: 0;
+    height: 4px;
+    background: #f59e0b;
+    transition: width .2s;
+}
+
+@media(max-width:600px) {
+    .slide {
+        padding: 4%;
+    }
+
+    .content-row {
+        gap: 12px;
+    }
+
+    .cards {
+        gap: 7px;
+    }
+
+    .card {
+        padding: 10px;
+        min-height: 130px;
+    }
+
+    .browser {
+        width: 95%;
+    }
+
+    .browser-body {
+        padding: 12px;
+        gap: 10px;
+    }
+
+    th, td {
+        padding: 10px 6px;
+    }
+
+    #controls {
+        gap: 7px;
+    }
+
+    button {
+        padding: 9px 10px;
+        font-size: 12px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<main id="presentation">
+
+<!-- SLAYT 1 -->
+<section class="slide dark active">
+    <div class="cover-content">
+        <div>
+            <div class="eyebrow">6. SINIF BİLİŞİM TEKNOLOJİLERİ VE YAZILIM</div>
+            <h1>Cache Bellek<br>(Önbellek)</h1>
+            <p>İşlemcinin sık kullandığı verilere anında ulaşmasını sağlayan hızlı yardımcı bellek.</p>
+            <div class="orange-line"></div>
+        </div>
+        <div class="chip">
+            <div class="chip-inner"></div>
+        </div>
+    </div>
+</section>
+
+<!-- SLAYT 2 -->
+<section class="slide">
+    <div class="eyebrow">KAVRAM TANIMI</div>
+    <h2>Cache Bellek Nedir?</h2>
+
+    <div class="content-row">
+        <div class="info-list">
+            <p><strong>Konumu:</strong> İşlemcinin (CPU) hemen yanında yer alır.</p>
+            <p><strong>Görevi:</strong> Sık kullanılan verileri geçici olarak saklar.</p>
+            <p><strong>Amacı:</strong> İşlemcinin veri bekleme süresini azaltır.</p>
+            <div class="orange-line"></div>
+            <p class="blue"><strong>Veri türü ya da cihaz değişse de önbelleğin görevi aynıdır.</strong></p>
+        </div>
+
+        <img
+            class="cache-photo"
+            src="https://images.unsplash.com/photo-1717444309226-c0809d4b5bde?fm=jpg&q=60&w=3000&auto=format&fit=crop"
+            alt="Anakart üzerinde bilgisayar işlemcisi"
+        >
+    </div>
+</section>
+
+<!-- SLAYT 3 -->
+<section class="slide">
+    <div class="eyebrow">İLİŞKİLİ (AYIRT EDİCİ) NİTELİKLER</div>
+    <h2>Üç Temel Ayırt Edici Özellik</h2>
+
+    <div class="cards">
+        <div class="card">
+            <div class="card-icon orange">◉</div>
+            <h3>Çok Yüksek Hız</h3>
+            <p>İşlemci bekleme süresini azaltır.</p>
+        </div>
+
+        <div class="card">
+            <div class="card-icon blue">▦</div>
+            <h3>Küçük Kapasite</h3>
+            <p>Yalnızca sık verileri tutar.</p>
+        </div>
+
+        <div class="card">
+            <div class="card-icon">⌛</div>
+            <h3>Geçici Depolama</h3>
+            <p>Elektrik kesilince veriler silinir.</p>
+        </div>
+    </div>
+</section>
+
+<!-- SLAYT 4 -->
+<section class="slide">
+    <div class="eyebrow">TARAYICI HIZ KARŞILAŞTIRMASI</div>
+    <h2>1. Ziyaret: Önbellek Boş</h2>
+
+    <div class="browser">
+        <div class="browser-top">
+            <span class="dot"></span>
+            <span class="dot"></span>
+            <span class="dot"></span>
+            <div class="address"></div>
+        </div>
+        <div class="loading-bar"></div>
+        <div class="browser-body">
+            <div class="skeleton"></div>
+            <div class="skeleton-right">
+                <div class="skeleton"></div>
+                <div class="skeleton"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="stats">
+        <div>
+            <h2>3,2 sn</h2>
+            <p>Yüklenme süresi</p>
+        </div>
+        <div>
+            <h2>Uzak Sunucu</h2>
+            <p>Veri kaynağı</p>
+        </div>
+        <div>
+            <h2 class="orange">İndiriliyor</h2>
+            <p>Logo ve görseller</p>
+        </div>
+    </div>
+</section>
+
+<!-- SLAYT 5 -->
+<section class="slide">
+    <div class="eyebrow">TARAYICI HIZ KARŞILAŞTIRMASI</div>
+    <h2>2. Ziyaret: Önbellek Dolu</h2>
+
+    <div class="fast-layout">
+        <div>
+            <div class="fast-number">0,3 sn</div>
+            <h3 class="orange">10 kat daha hızlı sayfa açılışı</h3>
+            <br>
+            <p><strong>Kaynak:</strong> Kayıtlı öğeler önbellekten gelir.</p>
+            <br>
+            <p><strong>İndirme:</strong> Görseller tekrar sunucudan çekilmez.</p>
+            <br>
+            <p><strong>Sonuç:</strong> Sayfa daha hızlı ekrana yansır.</p>
+        </div>
+
+        <div class="fast-browser">
+            <div class="browser-top">
+                <span class="dot"></span>
+                <span class="dot"></span>
+                <span class="dot"></span>
+                <div class="address"></div>
+            </div>
+            <div class="loading-bar"></div>
+            <div class="fast-boxes">
+                <div class="fast-box">⚡</div>
+                <div class="fast-box">● ● ●</div>
+                <div class="fast-box">● ●</div>
+                <div class="fast-box">● ● ●</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- SLAYT 6 -->
+<section class="slide">
+    <div class="eyebrow">BİLGİSAYAR SİSTEMİNDEKİ YERİ</div>
+    <h2>Cache, RAM ve SSD/HDD Farkı</h2>
+
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Bellek Türü</th>
+                    <th>Erişim Hızı</th>
+                    <th>Kapasite</th>
+                    <th>Kalıcılık</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong class="blue">Cache Bellek (Önbellek)</strong></td>
+                    <td class="orange"><strong>En yüksek</strong></td>
+                    <td>Çok küçük</td>
+                    <td>Geçici</td>
+                </tr>
+                <tr>
+                    <td><strong>Ana Bellek (RAM)</strong></td>
+                    <td>Yüksek</td>
+                    <td>Orta boyut</td>
+                    <td>Geçici</td>
+                </tr>
+                <tr>
+                    <td><strong>Depolama (SSD / HDD)</strong></td>
+                    <td>Daha yavaş</td>
+                    <td>Çok geniş</td>
+                    <td>Kalıcı</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<!-- SLAYT 7 -->
+<section class="slide dark">
+    <div class="final-content">
+        <div class="eyebrow">SIRA SENDE • TANIMLAMA ZAMANI</div>
+        <h1>Kendi Cümlelerinle Tanımla</h1>
+        <p>Belirlediğimiz hız, kapasite ve geçicilik özelliklerinden yola çıkarak Cache belleği nasıl tanımlarsın?</p>
+        <div class="orange-line" style="margin:30px auto"></div>
+    </div>
+</section>
+
+<!-- SLAYT 8 -->
+<section class="slide source">
+    <h2>Image Sources</h2>
+    <p>İşlemci görseli:</p>
+    <br>
+    <a href="https://images.unsplash.com/photo-1717444309226-c0809d4b5bde?fm=jpg&q=60&w=3000&auto=format&fit=crop"
+       target="_blank">
+       Unsplash – Processor Image
+    </a>
+</section>
+
+</main>
+
+<div id="progress"></div>
+
+<nav id="controls">
+    <button id="prev">← Geri</button>
+    <span id="counter">1 / 8</span>
+    <button id="next">İleri →</button>
+    <button id="fullscreen">⛶ Tam ekran</button>
+</nav>
+
+<script>
+const slides = document.querySelectorAll(".slide");
+
+let current = 0;
+
+const counter = document.getElementById("counter");
+const prev = document.getElementById("prev");
+const next = document.getElementById("next");
+const progress = document.getElementById("progress");
+
+function showSlide(index) {
+    current = Math.max(0, Math.min(index, slides.length - 1));
+
+    slides.forEach((slide, i) => {
+        slide.classList.toggle("active", i === current);
+    });
+
+    counter.textContent = `${current + 1} / ${slides.length}`;
+
+    prev.disabled = current === 0;
+    next.disabled = current === slides.length - 1;
+
+    progress.style.width =
+        ((current + 1) / slides.length * 100) + "%";
+}
+
+prev.addEventListener("click", () => {
+    showSlide(current - 1);
+});
+
+next.addEventListener("click", () => {
+    showSlide(current + 1);
+});
+
+document.getElementById("fullscreen").addEventListener("click", async () => {
+    if (!document.fullscreenElement) {
+        await document.documentElement.requestFullscreen();
+    } else {
+        await document.exitFullscreen();
+    }
+});
+
+document.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowRight" || e.key === "PageDown") {
+        showSlide(current + 1);
+    }
+
+    if (e.key === "ArrowLeft" || e.key === "PageUp") {
+        showSlide(current - 1);
+    }
+
+    if (e.key === "Home") {
+        showSlide(0);
+    }
+
+    if (e.key === "End") {
+        showSlide(slides.length - 1);
+    }
+});
+
+let touchStart = 0;
+
+document.addEventListener("touchstart", (e) => {
+    touchStart = e.changedTouches[0].screenX;
+}, { passive: true });
+
+document.addEventListener("touchend", (e) => {
+    let touchEnd = e.changedTouches[0].screenX;
+    let difference = touchEnd - touchStart;
+
+    if (Math.abs(difference) > 60) {
+        showSlide(current + (difference < 0 ? 1 : -1));
+    }
+}, { passive: true });
+
+showSlide(0);
+</script>
+
+</body>
+</html>
+
